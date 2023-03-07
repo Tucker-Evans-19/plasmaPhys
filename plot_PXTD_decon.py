@@ -4,6 +4,16 @@ import h5py as hp
 import sys
 from scipy import ndimage
 import numpy.linalg as lin
+from scipy.optimize import curve_fit
+
+def Gauss(x, A, B, x0):
+	y = A*np.exp(-1*(x-x0)**2/(2*B**2))
+	return y
+
+def Two_Gauss(x, A1, B1, x1, A2, B2, x2):	
+	y = A1*np.exp(-1*(x-x1)**2/(2*B1**2)) + A2*np.exp(-1*(x-x2)**2/(2*B2**2))
+	return y
+
 
 def roll_average(vector_input, half_window):
 	vector_averaged = vector_input
@@ -160,7 +170,7 @@ xls1 = roll_average(xls1[0], 5)
 xls2 = roll_average(xls2[0], 5)
 fs = 15
 
-fig, ax = plt.subplots(2,1, figsize = (6, 6), dpi=400)
+fig, ax = plt.subplots(2,1,figsize = (4,4), dpi=150)
 time = np.linspace(1,len(xls1), len(xls1))*time_per_pixel
 
 ax[0].plot(time, 10*xls1, c='r')
@@ -173,8 +183,39 @@ ax[1].set_ylabel('Neutron Signal', fontsize = fs)
 ax[1].set_xlabel('time (ps)', fontsize=fs)
 #ax[0].set_xticklabels(fontsize=16)
 #ax[1].set_xticklabels(fontsize=16)
-plt.savefig('PXTD_Decon_'+shot_num+'.png')
+# general setup for the following taken from : 
+# https://www.geeksforgeeks.org/python-gaussian-fit/
+
+param1, cov1 = curve_fit(Gauss, np.linspace(1,len(xls1), len(xls1)), xls1, p0=[500,100, 4000/time_per_pixel ])
+param2, cov2 = curve_fit(Gauss, np.linspace(1,len(xls2), len(xls2)), xls2, p0=[500,100, 4000/time_per_pixel],maxfev=2500)
+
+fit_A1 = param1[0]
+fit_B1 = param1[1]
+fit_x1 = param1[2]
+
+fit_A2 = param2[0]
+fit_B2 = param2[1]
+fit_x2 = param2[2]
+
+fit1 = Gauss(np.linspace(1,len(xls1), len(xls1)), fit_A1, fit_B1, fit_x1)
+fit2 = Gauss(np.linspace(1,len(xls1), len(xls1)), fit_A2, fit_B2, fit_x2)
+ax[0].plot(time, fit1*10, c='orange')
+
+print('Channel 1 fit params:\n')
+print(fit_A1)
+print(fit_B1*time_per_pixel)
+print('fwhm: ')
+print(fit_B1*time_per_pixel*2.355)
+print(fit_x1*time_per_pixel)
+
+print('Channel 2 fit params:\n')
+print(fit_A2)
+print(fit_B2*time_per_pixel)
+print(fit_x2*time_per_pixel)
+plt.suptitle('Time Resolved Emission History (PXTD): '+shot_num)
+plt.savefig('/Users/tuckerevans/Documents/MIT/HEDP/multi-ion experiments/MultiIon-22B/MultiIon-22B PTD/PXTD_Decon_'+shot_num+'.png')
+
+
+
 plt.show()
-
-
 
