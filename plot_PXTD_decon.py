@@ -28,7 +28,20 @@ def roll_average(vector_input, half_window):
 	return vector_averaged
 
 file = sys.argv[1]
-print('analyzing ', file)
+
+#making sure that this is in h5 format and if not, updating it. 
+if file[-3:] == 'hdf':
+	print('Converting to h5 format')
+	os.system(f"h4toh5 {file}")
+	file = file[-3:] + '.h5'
+elif file[-3:] == '.h5':
+	print('Recognized file format')
+else:
+	print('Not a recognized file format. Exiting.')
+	sys.exit()
+
+print(f'analyzing {file}')
+
 shot_num = file[5:11]
 data = hp.File(file, 'r')
 image_raw = np.array(data.get('Streak_array'))
