@@ -5,6 +5,8 @@ import sys
 from scipy import ndimage
 import numpy.linalg as lin
 from scipy.optimize import curve_fit
+import os
+
 
 def Gauss(x, A, B, x0):
 	y = A*np.exp(-1*(x-x0)**2/(2*B**2))
@@ -32,8 +34,8 @@ file = sys.argv[1]
 #making sure that this is in h5 format and if not, updating it. 
 if file[-3:] == 'hdf':
 	print('Converting to h5 format')
-	os.system(f"h4toh5 {file}")
-	file = file[-3:] + '.h5'
+	os.system(f"./h4toh5 {file}")
+	file = file[:-4] + '.h5'
 elif file[-3:] == '.h5':
 	print('Recognized file format')
 else:
@@ -42,7 +44,13 @@ else:
 
 print(f'analyzing {file}')
 
-shot_num = file[5:11]
+# requesting the correct number of peaks for each channel from the user:
+np1 = input('Enter number of peaks on channel 1:')
+np2 = input('Enter number of peaks on channel 2:')
+np1 = int(np1)
+np2 = int(np2)
+
+shot_num = file[-13:-7]
 data = hp.File(file, 'r')
 image_raw = np.array(data.get('Streak_array'))
 image_clean = image_raw[0,:,:]
@@ -176,12 +184,20 @@ for i in range(fit_len):
 			G[i,j] = np.exp((j-i)*time_per_pixel/1200)
 #Gt = np.transpose(G)
 #x = np.matmul(np.matmul(lin.inv(np.matmul(Gt, G)), Gt), c2_lineout)
-xls1 = lin.lstsq(G,c1_lineout)
-xls2 = lin.lstsq(G,c2_lineout)
+xls1 = lin.lstsq(G,c1_lineout, rcond=None)
+xls2 = lin.lstsq(G,c2_lineout, rcond=None)
 
 xls1 = roll_average(xls1[0], 5)
 xls2 = roll_average(xls2[0], 5)
 fs = 15
+
+#cropping to positive values only:
+for element in range(len(xls1)):
+	if xls1[element]<0:
+		xls1[element] = 0
+	if xls2[element]<0:
+		xls2[element] = 0
+
 
 fig, ax = plt.subplots(2,1,figsize = (4,4), dpi=150)
 time = np.linspace(1,len(xls1), len(xls1))*time_per_pixel
@@ -199,32 +215,56 @@ ax[1].set_xlabel('time (ps)', fontsize=fs)
 # general setup for the following taken from : 
 # https://www.geeksforgeeks.org/python-gaussian-fit/
 
-param1, cov1 = curve_fit(Gauss, np.linspace(1,len(xls1), len(xls1)), xls1, p0=[500,100, 4000/time_per_pixel ])
-param2, cov2 = curve_fit(Gauss, np.linspace(1,len(xls2), len(xls2)), xls2, p0=[500,100, 4000/time_per_pixel],maxfev=2500)
 
-fit_A1 = param1[0]
-fit_B1 = param1[1]
-fit_x1 = param1[2]
+# Fitting the outputs to gaussians:
 
-fit_A2 = param2[0]
-fit_B2 = param2[1]
-fit_x2 = param2[2]
-
-fit1 = Gauss(np.linspace(1,len(xls1), len(xls1)), fit_A1, fit_B1, fit_x1)
-fit2 = Gauss(np.linspace(1,len(xls1), len(xls1)), fit_A2, fit_B2, fit_x2)
+if np1 ==1:
+	param1, cov1 = curve_fit(Gauss, np.linspace(1,len(xls1), len(xls1)), xls1, p0=[500,100, 100 ], bounds = ([0,[5000, 200, 200]]))
+	fit_A1 = param1[0]
+	fit_B1 = param1[1]
+	fit_x1 = param1[2]
+		
+	fit1 = Gauss(np.linspace(1,len(xls1), len(xls1)), fit_A1, fit_B1, fit_x1)
+elif np1 ==2:	
+	param1, cov1 = curve_fit(Two_Gauss, np.linspace(1,len(xls1), len(xls1)), xls1, p0 = [500, 100, 100, 700, 100, 100])
+	fit1 = Two_Gauss(np.linspace(1, len(xls1), len(xls1)), param1[0], param1[1], param1[2], param1[3], param1[4], param1[5])
+else:
+	print('Currently unsupported number of peaks for this channel')
+	sys.exit()
 ax[0].plot(time, fit1*10, c='orange')
 
-print('Channel 1 fit params:\n')
-print(fit_A1)
-print(fit_B1*time_per_pixel)
-print('fwhm: ')
-print(fit_B1*time_per_pixel*2.355)
-print(fit_x1*time_per_pixel)
+if np2 ==1:
+	param2a, cov2a = curve_fit(Gauss, np.linspace(1,len(xls2), len(xls2)), xls2, p0=[500,100, 100], bounds = ([0,[5000, 200, 200]]))	
+	fit2 = Gauss(np.linspace(1,len(xls2), len(xls2)), param2a[0], param2a[1], param2a[2])
+elif np2 ==2:	
+	
+	#try:
+	#	param2, cov2 = curve_fit(Two_Gauss, np.linspace(1,len(xls2), len(xls2)), xls2, p0 = [1500, 100, 100, 500, 100, 120], maxfev = 10000)
+	#	fit2 = Two_Gauss(np.linspace(1, len(xls2), len(xls2)), param2[0], param2[1], param2[2], param2[3], param2[4], param2[5])
+	#except(RuntimeError):
+	#	print('We were not able to find both peaks on channel 2. Now fitting for one peak.')
+	#	param2, cov2 = curve_fit(Gauss, np.linspace(1,len(xls2), len(xls2)), xls2, p0=[500,100, 4000/time_per_pixel ])	
+	#	fit2 = Gauss(np.linspace(1,len(xls2), len(xls2)), param2[0], param2[1], param2[2])
+	
+	#print('We were not able to find both peaks on channel 2. Now fitting for one peak.')
+	param2a, cov2a = curve_fit(Gauss, np.linspace(1,len(xls2), len(xls2)), xls2, p0=[500,100, 100 ],  bounds = ([0,[5000, 200, 200]]))	
+	fit2_temp = Gauss(np.linspace(1,len(xls2), len(xls2)), param2a[0], param2a[1], param2a[2])
+	xls2_temp = xls2 - fit2_temp
+	param2b, cov2b = curve_fit(Gauss, np.linspace(1, len(xls2_temp), len(xls2_temp)), xls2_temp, p0 = [500, 100, 100],  bounds = ([0,[5000, 200, 200]]))
+	
+	fit2 = fit2_temp +  Gauss(np.linspace(1,len(xls2), len(xls2)), param2b[0], param2b[1], param2b[2])
+else:
+	print('Currently unsupported number of peaks for this channel')
+	sys.exit()
+ax[0].plot(time, fit1*10, c='orange')
+ax[1].plot(time, fit2*10, c='orange')
+print(param1)
+print(param2a)
+try:
+	print(param2b)
+except(NameError):
+	pass
 
-print('Channel 2 fit params:\n')
-print(fit_A2)
-print(fit_B2*time_per_pixel)
-print(fit_x2*time_per_pixel)
 plt.suptitle('Time Resolved Emission History (PXTD): '+shot_num)
 plt.savefig('/Users/tuckerevans/Documents/MIT/HEDP/multi-ion experiments/MultiIon-22B/MultiIon-22B PTD/PXTD_Decon_'+shot_num+'.png')
 
