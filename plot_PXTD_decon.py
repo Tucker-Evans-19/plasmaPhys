@@ -118,9 +118,9 @@ for element in range(len(fid_filter)):
 			right_sides.append(element)
 		else:
 			pass
-print('Peak bounds detected: ' + str(len(left_sides)))
-print(left_sides)
-print(right_sides)
+#print('Peak bounds detected: ' + str(len(left_sides)))
+#print(left_sides)
+#print(right_sides)
 
 #trying to fit a gaussian to each segment:
 peak_segments = []
@@ -144,12 +144,12 @@ for peak in peak_segments:
 	#plt.figure()
 	#plt.plot(peak)
 	#plt.plot(np.matmul(G, x))
-print(peak_centers) 
+#print(peak_centers) 
 peak_centers = np.array(peak_centers)
 left_sides = np.array(left_sides)
 centers = peak_centers + left_sides
 
-print(centers)
+#print(centers)
 for center in centers:
 	ax[2].axvline(center)
 
@@ -173,7 +173,7 @@ c1_lineout = c1_lineout - np.average(c1_lineout[0:50])
 
 #going through the inversion: 
 fit_len = len(c2_lineout)
-print(fit_len)
+#print(fit_len)
 
 G = np.zeros(shape = (fit_len, fit_len))
 for i in range(fit_len):
@@ -199,7 +199,7 @@ for element in range(len(xls1)):
 		xls2[element] = 0
 
 
-fig, ax = plt.subplots(2,1,figsize = (4,4), dpi=150)
+fig, ax = plt.subplots(2,1, dpi=150)
 time = np.linspace(1,len(xls1), len(xls1))*time_per_pixel
 
 ax[0].plot(time, 10*xls1, c='r')
@@ -258,17 +258,36 @@ else:
 	sys.exit()
 ax[0].plot(time, fit1*10, c='orange')
 ax[1].plot(time, fit2*10, c='orange')
-print(param1)
-print(param2a)
+#print(param1)
+#print(param2a)
+
+print('\nChannel 1 peak info:\n')
+print(f'\tpeak height: {param1[0]}')
+print(f'\tpeak width: {param1[1]*time_per_pixel}')
+print(f'\tpeak center: {param1[2]*time_per_pixel}')
+
+print('\nChannel 2 peak info:\n')
+print(f'\tpeak height: {param2a[0]}')
+print(f'\tpeak width: {param2a[1]*time_per_pixel}')
+print(f'\tpeak center: {param2a[2]*time_per_pixel}')
+
+
+
 try:
-	print(param2b)
+#	print(param2b)
+
+	print('\nChannel 2b peak info:\n')
+	print(f'\tpeak height: {param2b[0]}')
+	print(f'\tpeak width: {param2b[1]*time_per_pixel}')
+	print(f'\tpeak center: {param2b[2]*time_per_pixel}')
+
 except(NameError):
 	pass
 
 plt.suptitle('Time Resolved Emission History (PXTD): '+shot_num)
-plt.savefig('/Users/tuckerevans/Documents/MIT/HEDP/multi-ion experiments/MultiIon-22B/MultiIon-22B PTD/PXTD_Decon_'+shot_num+'.png')
+plt.savefig('./PXTD_Decon_'+shot_num+'.png')
 
 
 
-plt.show()
+#plt.show()
 
