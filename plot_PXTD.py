@@ -62,4 +62,4 @@ ax[2].set_ylim(ymin = 0)
 title_form = 'Channel lineouts, shot#: '
 plt.suptitle(title_form + shot_num)
 plt.savefig(file[:-3] + '_lineouts.png')
-
+plt.show()
