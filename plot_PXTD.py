@@ -22,7 +22,7 @@ print('analyzing ', file)
 shot_num = file[7:13]
 data = hp.File(file, 'r')
 image_raw = np.array(data.get('Streak_array'))
-image_clean = image_raw[0,:,:]
+image_clean = image_raw[0,:,:] - image_raw[1,:,:]
 
 image_rot = ndimage.rotate(image_clean, .0297*180/3.1415)
 bg = image_rot[40:50,200:300]
@@ -62,4 +62,24 @@ ax[2].set_ylim(ymin = 0)
 title_form = 'Channel lineouts, shot#: '
 plt.suptitle(title_form + shot_num)
 plt.savefig(file[:-3] + '_lineouts.png')
+
+plt.figure()
+im = (np.squeeze(image_raw[0,100:460, 110:240] - image_raw[1,100:460, 110:240]))
+plt.pcolor(im,vmax = 2000)
+plt.colorbar()
+
+while True:
+	click = plt.ginput(1)
+	pos = click[0]
+	x = int(pos[1])
+	y = int(pos[0])
+	print(np.average(im[x-10:x+10,y-10:y+10]))
+
+
+
+
+
+
+
+
 plt.show()

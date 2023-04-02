@@ -59,7 +59,7 @@ np3 = int(np3)
 shot_num = file[-13:-7]
 data = hp.File(file, 'r')
 image_raw = np.array(data.get('Streak_array'))
-image_clean = image_raw[0,:,:]
+image_clean = image_raw[0,:,:] - image_raw[1,:,:]
 
 image_rot = ndimage.rotate(image_clean, .0297*180/3.1415)
 bg = image_rot[40:50,200:300]
@@ -67,17 +67,27 @@ bg_average = np.average(np.average(bg,1),0)
 image_rot = image_rot - bg_average
 
 image_rot = ndimage.median_filter(image_rot, size = 3)
+#while True:
+#	click = plt.ginput()
+#	print(click[0])
+#	indices = click[0]
+#	print(test_image[int(indices[0]), int(indices[1])]) 
+	
+c1_lineout = np.average(image_rot[203:217,100:-50], 0)
+c2_lineout = np.average(image_rot[166:183,100:-50], 0)
+c3_lineout = np.average(image_rot[132:149,100:-50], 0)
+print('pick background')
 
 
-c1_lineout = np.average(image_rot[203:217,:], 0)
-c2_lineout = np.average(image_rot[166:183,:], 0)
-c3_lineout = np.average(image_rot[132:149,:], 0)
+
+
+
 
 fid_lineout = np.average(image_rot[70:90,:], 0)
 
-c1_lineout_av = roll_average(c1_lineout, 5)
-c2_lineout_av = roll_average(c2_lineout, 5)
-c3_lineout_av = roll_average(c3_lineout, 5)
+c1_lineout_av = roll_average(c1_lineout, 1)
+c2_lineout_av = roll_average(c2_lineout, 1)
+c3_lineout_av = roll_average(c3_lineout, 1)
 
 
 plt.figure()
@@ -102,11 +112,6 @@ ax[0].set_ylabel('ch1 signal')
 ax[1].set_ylabel('ch2 signal')
 ax[2].set_ylabel('ch3 signal')
 ax[3].set_ylabel('fiducial')
-
-ax[0].set_ylim(ymin = 0)
-ax[1].set_ylim(ymin = 0)
-ax[2].set_ylim(ymin = 0)
-ax[3].set_ylim(ymin = 0)
 
 
 title_form = 'Channel lineouts, shot#: '
@@ -242,6 +247,14 @@ ax[1].set_ylabel('channel 2', fontsize = fs)
 ax[2].set_ylabel('channel 3', fontsize = fs)
 
 ax[2].set_xlabel('time (ps)', fontsize=fs)
+
+
+# setting ylimits 
+ax[0].set_ylim([0, 3500])
+ax[1].set_ylim([0, 3500])
+ax[2].set_ylim([0, 3500])
+
+
 #ax[0].set_xticklabels(fontsize=16)
 #ax[1].set_xticklabels(fontsize=16)
 # general setup for the following taken from : 
