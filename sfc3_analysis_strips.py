@@ -155,7 +155,7 @@ if circle_analysis:
 			except(IndexError):
 				pass
 	
-plot_rs = False
+plot_rs = True
 if plot_rs:
 	
 
