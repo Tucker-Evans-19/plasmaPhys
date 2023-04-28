@@ -55,7 +55,7 @@ plt.figure()
 plt.scatter((indices), step_vals)
 plt.plot((xfin), response_curve((xfin), param[0], param[1], param[2], param[3]), c='red')
 
-with open(file_prefix + '_analysis.txt') as data:
-    data.write(params)
+with open(prefix + '_analysis.txt', 'w') as data:
+    data.write(str(param))
 
-#plt.show()
+plt.show()
