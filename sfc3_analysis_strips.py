@@ -6,21 +6,37 @@ import numpy as np
 import scipy.ndimage as nd
 import cv2
 import matplotlib.patches as patch
+from scipy.special import erf
+from scipy.special import erfinv 
 
+def response_curve(x, A, x0, d, c):
+	return A *(1- erf((x-x0)/d))+c
+
+def response_curve_inv(v, A, x0, d, c):
+    return d*erfinv(1 - (v-c)/A) + x0
 
 
 file = sys.argv[1]
+wedge_file = sys.argv[2]
+params = []
+with open(wedge_file, 'r') as parameter_file:
+    for line in parameter_file:
+        val = float(line)
+        params.append(val)
+
+
 prefix = file[:-3]
 print(prefix)
 data = hp.File(file,'r')
 image_raw = np.array(data.get('pds_image'))
 image_raw = image_raw[91:,80:]
-
+image_filt = response_curve_inv(image_raw, params[0], params[1], params[2], params[3])
 
 # plot filtered image:
 plt.figure()
 image_filt = nd.median_filter(image_raw, 5)
 image_filt = nd.gaussian_filter(image_filt, 5)
+
 plt.imshow(image_filt)
 plt.colorbar()
 
@@ -94,9 +110,8 @@ for image_crop in images_filter:
 	max_scale = np.average(image_crop[max_val_1-10:max_val_1+10, max_val_2-10:max_val_2+10])
 
 	image_scaled = (image_crop - min_scale)/(max_scale - min_scale)
-	
-	image_bin_filter = image_scaled * (image_scaled > .5)
-	image_bin = (image_scaled > .5)
+	image_bin_filter = image_scaled * (image_scaled > .9)
+	image_bin = (image_scaled > .9)
 	#plt.figure()
 	#plt.imshow(image_bin_filter)
 	images_bin.append(image_bin)
