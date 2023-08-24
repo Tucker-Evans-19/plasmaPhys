@@ -31,40 +31,7 @@ class hyades_run:
         self.dt = np.array(ds.variables['Dtave'])
 
     #reading in Bosch-Hale coefficients:
-    def bh_react_ddn(T):
-        index = 0 
-        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
-        zeta =((Bs[index]**2)/(4*theta))**(1/3)
-        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
-
-        return sigmav
-
-    def bh_react_ddp(T):
-        index = 1 
-        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
-        zeta =((Bs[index]**2)/(4*theta))**(1/3)
-        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
-
-        return sigmav
-
-    def bh_react_d3hep(T):
-        index = 2 
-        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
-        zeta =((Bs[index]**2)/(4*theta))**(1/3)
-        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
-
-        return sigmav
-
-
-    def bh_react_dtn(T):
-        index = 3 
-        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
-        zeta =((Bs[index]**2)/(4*theta))**(1/3)
-        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
-
-        return sigmav
-    
-    def get_emission_histories(self):
+    def bh_react_ddn(self,T):
         with open('BH_coeffs.txt', 'r') as bh:
             cddn = []
             cddp = []
@@ -99,12 +66,147 @@ class hyades_run:
             c5 = Cmat[:,6]
             c6 = Cmat[:,7]
             c7 = Cmat[:,8]
+        index = 0 
+        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
+        zeta =((Bs[index]**2)/(4*theta))**(1/3)
+        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
+
+        return sigmav
+
+    def bh_react_ddp(self,T):
+        with open('BH_coeffs.txt', 'r') as bh:
+            cddn = []
+            cddp = []
+            cd3hep = []
+            cdtn = []
+            lines = bh.readlines()
+            lnum = 0    
+            for line in lines:
+                if lnum > 0:
+                    vals = line.split()
+                    cddn.append(float(vals[0]))
+                    cddp.append(float(vals[1]))
+                    cd3hep.append(float(vals[2]))
+                    cdtn.append(float(vals[3]))
+            
+                lnum += 1
+
+            Cddn = np.array(cddn)
+            Cddp = np.array(cddp)
+            Cd3hep = np.array(cd3hep)
+            Cdtn = np.array(cdtn)
+            Cmat = [Cddn, Cddp, Cd3hep, Cdtn]
+            
+            Cmat = np.array(Cmat)
+            Bs = Cmat[:,0]
+            Ms = Cmat[:,1]
+
+            c1 = Cmat[:,2]
+            c2 = Cmat[:,3]
+            c3 = Cmat[:,4]
+            c4 = Cmat[:,5]
+            c5 = Cmat[:,6]
+            c6 = Cmat[:,7]
+            c7 = Cmat[:,8]
+        index = 1 
+        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
+        zeta =((Bs[index]**2)/(4*theta))**(1/3)
+        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
+
+        return sigmav
+
+    def bh_react_d3hep(self,T):
+        with open('BH_coeffs.txt', 'r') as bh:
+            cddn = []
+            cddp = []
+            cd3hep = []
+            cdtn = []
+            lines = bh.readlines()
+            lnum = 0    
+            for line in lines:
+                if lnum > 0:
+                    vals = line.split()
+                    cddn.append(float(vals[0]))
+                    cddp.append(float(vals[1]))
+                    cd3hep.append(float(vals[2]))
+                    cdtn.append(float(vals[3]))
+            
+                lnum += 1
+
+            Cddn = np.array(cddn)
+            Cddp = np.array(cddp)
+            Cd3hep = np.array(cd3hep)
+            Cdtn = np.array(cdtn)
+            Cmat = [Cddn, Cddp, Cd3hep, Cdtn]
+            
+            Cmat = np.array(Cmat)
+            Bs = Cmat[:,0]
+            Ms = Cmat[:,1]
+
+            c1 = Cmat[:,2]
+            c2 = Cmat[:,3]
+            c3 = Cmat[:,4]
+            c4 = Cmat[:,5]
+            c5 = Cmat[:,6]
+            c6 = Cmat[:,7]
+            c7 = Cmat[:,8]
+        index = 2 
+        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
+        zeta =((Bs[index]**2)/(4*theta))**(1/3)
+        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
+
+        return sigmav
+
+
+    def bh_react_dtn(self,T):
+        with open('BH_coeffs.txt', 'r') as bh:
+            cddn = []
+            cddp = []
+            cd3hep = []
+            cdtn = []
+            lines = bh.readlines()
+            lnum = 0    
+            for line in lines:
+                if lnum > 0:
+                    vals = line.split()
+                    cddn.append(float(vals[0]))
+                    cddp.append(float(vals[1]))
+                    cd3hep.append(float(vals[2]))
+                    cdtn.append(float(vals[3]))
+            
+                lnum += 1
+
+            Cddn = np.array(cddn)
+            Cddp = np.array(cddp)
+            Cd3hep = np.array(cd3hep)
+            Cdtn = np.array(cdtn)
+            Cmat = [Cddn, Cddp, Cd3hep, Cdtn]
+            
+            Cmat = np.array(Cmat)
+            Bs = Cmat[:,0]
+            Ms = Cmat[:,1]
+
+            c1 = Cmat[:,2]
+            c2 = Cmat[:,3]
+            c3 = Cmat[:,4]
+            c4 = Cmat[:,5]
+            c5 = Cmat[:,6]
+            c6 = Cmat[:,7]
+            c7 = Cmat[:,8]
+        index = 3 
+        theta = T/(1-T*(c2[index] + T*(c4[index]+T*c6[index]))/(1 + T*(c3[index] + T*(c5[index] + T*c7[index]))))
+        zeta =((Bs[index]**2)/(4*theta))**(1/3)
+        sigmav = c1[index]*theta*np.sqrt(zeta/(Ms[index]*T**3))*np.exp(-3*zeta)
+
+        return sigmav
+    
+    def get_emission_histories(self):
 
         #Reaction histories
-        reactMat_ddn = bh_react_ddn(self.tion) 
-        reactMat_ddp = bh_react_ddp(self.tion) 
-        reactMat_d3hep = bh_react_d3hep(self.tion) 
-        reactMat_dtn = bh_react_dtn(self.tion) 
+        reactMat_ddn = self.bh_react_ddn(self.tion) 
+        reactMat_ddp = self.bh_react_ddp(self.tion) 
+        reactMat_d3hep = self.bh_react_d3hep(self.tion) 
+        reactMat_dtn = self.bh_react_dtn(self.tion) 
         
         rate_ddn = .5*self.fD**2 * np.sum(self.nitot[:, 0:200]**2 * reactMat_ddn[:,0:200]*self.vols[:, 0:200], axis = 1)
         rate_ddp = .5*self.fD**2 * np.sum(self.nitot[:, 0:200]**2 * reactMat_ddp[:,0:200]*self.vols[:, 0:200], axis = 1)
